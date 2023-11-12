@@ -1,32 +1,32 @@
 #ifndef __MODULE_MEDIA_HPP__
 #define __MODULE_MEDIA_HPP__
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
-#include <strings.h>
-#include <inttypes.h>
-#include <sys/mman.h>
-#include <fcntl.h>
 #include <assert.h>
 #include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
-#include <queue>
-#include <mutex>
-#include <shared_mutex>
 #include <condition_variable>
 #include <functional>
+#include <mutex>
+#include <queue>
+#include <shared_mutex>
 #include <thread>
 
-#include "base/pixel_fmt.hpp"
-#include "base/video_buffer.hpp"
+#include "base/ff_log.h"
 #include "base/ff_synchronize.hpp"
 #include "base/ff_type.hpp"
-#include "base/ff_log.h"
+#include "base/pixel_fmt.hpp"
+#include "base/video_buffer.hpp"
 #include "base_config.h"
 
 using namespace std;
@@ -48,13 +48,15 @@ enum ModuleStatus {
     STATUS_STOPED,
 };
 
-class ModuleMedia : public std::enable_shared_from_this<ModuleMedia>
-{
+class ModuleMedia : public std::enable_shared_from_this<ModuleMedia> {
 public:
     ModuleMedia(const char* name_ = NULL);
     virtual ~ModuleMedia();
 
-    virtual int init() { return 0; };
+    virtual int init()
+    {
+        return 0;
+    };
     void start();
     void stop();
 
@@ -64,32 +66,72 @@ public:
     void addConsumer(shared_ptr<ModuleMedia> consumer);
     void removeConsumer(shared_ptr<ModuleMedia> consumer);
 
-    shared_ptr<ModuleMedia> getConsumer(uint16_t index) const { return consumers[index]; }
-    uint16_t getConsumersCount() const { return consumers_count; }
+    shared_ptr<ModuleMedia> getConsumer(uint16_t index) const
+    {
+        return consumers[index];
+    }
+    uint16_t getConsumersCount() const
+    {
+        return consumers_count;
+    }
 
-    void setBufferCount(uint16_t bufferCount) { buffer_count = bufferCount; }
-    uint16_t getBufferCount() const { return buffer_count; }
+    void setBufferCount(uint16_t bufferCount)
+    {
+        buffer_count = bufferCount;
+    }
+    uint16_t getBufferCount() const
+    {
+        return buffer_count;
+    }
     shared_ptr<MediaBuffer> getBufferFromIndex(uint16_t index);
 
-    void setInputImagePara(const ImagePara& inputPara) { input_para = inputPara; }
-    ImagePara getInputImagePara() const { return input_para; }
+    void setInputImagePara(const ImagePara& inputPara)
+    {
+        input_para = inputPara;
+    }
+    ImagePara getInputImagePara() const
+    {
+        return input_para;
+    }
 
-    void setOutputImagePara(const ImagePara& outputPara) { output_para = outputPara; }
-    ImagePara getOutputImagePara() const { return output_para; }
+    void setOutputImagePara(const ImagePara& outputPara)
+    {
+        output_para = outputPara;
+    }
+    ImagePara getOutputImagePara() const
+    {
+        return output_para;
+    }
 
-    const char* getName() const { return name; }
-    int getIndex() const { return index; }
-    ModuleStatus getModuleStatus() const { return module_status; }
-    MEDIA_BUFFER_TYPE getMediaType() const { return media_type; }
+    const char* getName() const
+    {
+        return name;
+    }
+    int getIndex() const
+    {
+        return index;
+    }
+    ModuleStatus getModuleStatus() const
+    {
+        return module_status;
+    }
+    MEDIA_BUFFER_TYPE getMediaType() const
+    {
+        return media_type;
+    }
 
-    void setSynchronize(shared_ptr<Synchronize> syn) { sync = syn; }
+    void setSynchronize(shared_ptr<Synchronize> syn)
+    {
+        sync = syn;
+    }
 
     void setOutputDataCallback(void_object_p ctx, callback_handler callback);
-    shared_ptr<ModuleMedia> addExternalConsumer(const char* name,
-                                                void_object_p external_consume_ctx,
-                                                callback_handler external_consume);
+    shared_ptr<ModuleMedia> addExternalConsumer(const char* name, void_object_p external_consume_ctx, callback_handler external_consume);
 
-    void setBufferSize(const size_t& bufferSize) { buffer_size = bufferSize; }
+    void setBufferSize(const size_t& bufferSize)
+    {
+        buffer_size = bufferSize;
+    }
     size_t getBufferSize() const;
 
     void dumpPipe();
@@ -135,7 +177,10 @@ protected:
     void notifyProduce();
     void notifyConsume();
 
-    void setModuleStatus(const ModuleStatus& moduleStatus) { module_status = moduleStatus; }
+    void setModuleStatus(const ModuleStatus& moduleStatus)
+    {
+        module_status = moduleStatus;
+    }
 
     void work();
     void _dumpPipe(int depth, std::function<void(ModuleMedia*)> func);
@@ -153,7 +198,6 @@ protected:
 
     int checkInputPara();
     virtual void reset();
-
 
 private:
     void resetModule();

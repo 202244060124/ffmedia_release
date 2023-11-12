@@ -1,24 +1,24 @@
-#include <stdio.h>
+#include <getopt.h>
+#include <math.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include <getopt.h>
-#include <queue>
-#include <math.h>
 #include <termios.h>
+#include <queue>
 
-#include "utils.hpp"
 #include "module/vi/module_cam.hpp"
-#include "module/vi/module_rtspClient.hpp"
-#include "module/vi/module_rtmpClient.hpp"
 #include "module/vi/module_fileReader.hpp"
-#include "module/vp/module_rga.hpp"
+#include "module/vi/module_rtmpClient.hpp"
+#include "module/vi/module_rtspClient.hpp"
+#include "module/vo/module_drmDisplay.hpp"
+#include "module/vo/module_fileWriter.hpp"
+#include "module/vo/module_rtmpServer.hpp"
+#include "module/vo/module_rtspServer.hpp"
 #include "module/vp/module_mppdec.hpp"
 #include "module/vp/module_mppenc.hpp"
-#include "module/vo/module_fileWriter.hpp"
-#include "module/vo/module_drmDisplay.hpp"
-#include "module/vo/module_rtspServer.hpp"
-#include "module/vo/module_rtmpServer.hpp"
+#include "module/vp/module_rga.hpp"
+#include "utils.hpp"
 
 #if OPENGL_SUPPORT
 #include "module/vo/module_rendererVideo.hpp"
@@ -37,7 +37,7 @@ using namespace std;
 #define USE_COMMON_SOURCE false
 shared_ptr<ModuleMedia> common_source_module;
 
-typedef struct _demo_config {
+typedef struct DemoConfig {
     int drm_display_plane_id = 0;
     int drm_display_plane_zpos = 0xFF;
     char dump_filename[256] = "";
@@ -71,7 +71,7 @@ typedef struct _demo_config {
     bool aplay_enable = false;
 } DemoConfig;
 
-typedef struct _demo_data {
+typedef struct DemoData {
     DemoConfig config;
     shared_ptr<Synchronize> sync = nullptr;
     shared_ptr<ModuleMedia> last_module = nullptr;
@@ -95,41 +95,40 @@ static int mygetch(void)
 
 static void usage(char** argv)
 {
-    ff_info(
-        "Usage: %s <Input source> [Options]\n\n"
-        "Options:\n"
-        "-i, --input                  Input image size\n"
-        "-o, --output                 Output image size, default same as input\n"
-        "-a, --inputfmt               Input image format, default MJPEG\n"
-        "-b, --outputfmt              Output image format, default NV12\n"
-        "-c, --count                  Instance count, default 1\n"
-        "-d, --drmdisplay             Drm display, set display plane, set 0 to auto find plane, default disabled\n"
+    ff_info("Usage: %s <Input source> [Options]\n\n"
+            "Options:\n"
+            "-i, --input                  Input image size\n"
+            "-o, --output                 Output image size, default same as input\n"
+            "-a, --inputfmt               Input image format, default MJPEG\n"
+            "-b, --outputfmt              Output image format, default NV12\n"
+            "-c, --count                  Instance count, default 1\n"
+            "-d, --drmdisplay             Drm display, set display plane, set 0 to auto find plane, default disabled\n"
 #if OPENGL_SUPPORT
-        "-x, --x11                    X11 window displays, render the video using opengl. default disabled\n"
+            "-x, --x11                    X11 window displays, render the video using opengl. default disabled\n"
 #endif
-        "-z, --zpos                   Drm display plane zpos, default auto select\n"
-        "-e, --encodetype             Encode encode, set encode type, default disabled\n"
-        "-f, --file                   Enable save source output data to file, set filename, default disabled\n"
-        "-p, --port                   Enable push stream, default rtsp stream, set push port, depend on encode enabled, default disabled\n"
-        "    --push_type              Set push stream type, default rtsp. e.g. --push_type rtmp\n"
-        "--rtsp_transport             Set the rtsp transport type, default udp.\n"
-        "                               e.g. --rtsp_transport tcp | --rtsp_transport multicast\n"
-        "-m, --enmux                  Enable save encode data to file, Enable package as mp4, mkv, or raw stream files depending on the file name suffix\n"
-        "                               default disabled. e.g. -m out.mp4 | -m out.mkv | -m out.yuv\n"
-        "-M, --filemaxframe           Set the maximum number of frames that can be saved. The default number is unlimited\n"
-        "-s, --sync                   Enable synchronization module, default disabled. Enable the default audio.\n"
-        "                               e.g. -s | --sync=video | --sync=abs\n"
-        "-A, --aplay                  Enable play audio, default disabled. e.g. --aplay plughw:3,0\n"
-        "-l, --loop                   Loop reads the media file.\n"
-        "-r, --rotate                 Image rotation degree, default 0\n"
-        "                               0:   none\n"
-        "                               1:   vertical mirror\n"
-        "                               2:   horizontal mirror\n"
-        "                               90:  90 degree\n"
-        "                               180: 180 degree\n"
-        "                               270: 270 degree\n"
-        "\n",
-        argv[0]);
+            "-z, --zpos                   Drm display plane zpos, default auto select\n"
+            "-e, --encodetype             Encode encode, set encode type, default disabled\n"
+            "-f, --file                   Enable save source output data to file, set filename, default disabled\n"
+            "-p, --port                   Enable push stream, default rtsp stream, set push port, depend on encode enabled, default disabled\n"
+            "    --push_type              Set push stream type, default rtsp. e.g. --push_type rtmp\n"
+            "--rtsp_transport             Set the rtsp transport type, default udp.\n"
+            "                               e.g. --rtsp_transport tcp | --rtsp_transport multicast\n"
+            "-m, --enmux                  Enable save encode data to file, Enable package as mp4, mkv, or raw stream files depending on the file name suffix\n"
+            "                               default disabled. e.g. -m out.mp4 | -m out.mkv | -m out.yuv\n"
+            "-M, --filemaxframe           Set the maximum number of frames that can be saved. The default number is unlimited\n"
+            "-s, --sync                   Enable synchronization module, default disabled. Enable the default audio.\n"
+            "                               e.g. -s | --sync=video | --sync=abs\n"
+            "-A, --aplay                  Enable play audio, default disabled. e.g. --aplay plughw:3,0\n"
+            "-l, --loop                   Loop reads the media file.\n"
+            "-r, --rotate                 Image rotation degree, default 0\n"
+            "                               0:   none\n"
+            "                               1:   vertical mirror\n"
+            "                               2:   horizontal mirror\n"
+            "                               90:  90 degree\n"
+            "                               180: 180 degree\n"
+            "                               270: 270 degree\n"
+            "\n",
+            argv[0]);
 }
 
 static const char* short_options = "i:o:a:b:c:d:z:e:f:p:m:r:s::A:M:xl";
@@ -224,12 +223,14 @@ void callback_savetofile(void* ctx, shared_ptr<MediaBuffer> buffer)
     DemoData* demo = (DemoData*)ctx;
     void* data;
     size_t size;
-    if (buffer == NULL)
+    if (buffer == NULL) {
         return;
+    }
     data = buffer->getActiveData();
     size = buffer->getActiveSize();
-    if (demo->file_data)
+    if (demo->file_data) {
         fwrite(data, size, 1, demo->file_data);
+    }
 }
 
 void callback_dumpFrametofile(void* ctx, shared_ptr<MediaBuffer> buffer)
@@ -240,10 +241,11 @@ void callback_dumpFrametofile(void* ctx, shared_ptr<MediaBuffer> buffer)
     shared_ptr<VideoBuffer> buf = static_pointer_cast<VideoBuffer>(buffer);
 
     if (demo->file_data) {
-        if (v4l2fmtIsCompressed(buf->getImagePara().v4l2Fmt))
+        if (v4l2fmtIsCompressed(buf->getImagePara().v4l2Fmt)) {
             dump_normalbuffer_to_file(buf, demo->file_data);
-        else
+        } else {
             dump_videobuffer_to_file(buf, demo->file_data);
+        }
     }
 }
 
@@ -253,8 +255,9 @@ void add_index_to_filename(char* filename, int index)
     char extension[20];
     sprintf(suffix, "%02d", index);
 
-    if ((filename == nullptr) || (strlen(filename) == 0))
+    if ((filename == nullptr) || (strlen(filename) == 0)) {
         return;
+    }
     char* t = strstr(filename, ".");
     if (t != NULL) {
         int len = t - filename;
@@ -338,7 +341,7 @@ int start_instance(DemoData* inst, int inst_index, int inst_count)
 
     if (inst_conf->cam_enabled) {
         shared_ptr<ModuleCam> cam = make_shared<ModuleCam>(inst_conf->input_source);
-        cam->setOutputImagePara(inst_conf->input_image_para);  // setOutputImage
+        cam->setOutputImagePara(inst_conf->input_image_para); // setOutputImage
         cam->setProductor(NULL);
         cam->setBufferCount(8);
         ret = cam->init();
@@ -425,8 +428,7 @@ SOURCE_CREATED:
 
         //(input_para.v4l2Fmt == V4L2_PIX_FMT_VP8) ||
         //(input_para.v4l2Fmt == V4L2_PIX_FMT_VP9))
-        if ((source_module_output_para.v4l2Fmt == V4L2_PIX_FMT_MJPEG)
-            || (source_module_output_para.v4l2Fmt == V4L2_PIX_FMT_H264)
+        if ((source_module_output_para.v4l2Fmt == V4L2_PIX_FMT_MJPEG) || (source_module_output_para.v4l2Fmt == V4L2_PIX_FMT_H264)
             || (source_module_output_para.v4l2Fmt == V4L2_PIX_FMT_HEVC)) {
             inst_conf->dec_enabled = true;
         }
@@ -450,14 +452,12 @@ SOURCE_CREATED:
     }
 
     {
-
         if (inst_conf->rotate != RGA_ROTATE_NONE) {
             inst_conf->rga_enabled = true;
         }
 
         const ImagePara& input_para = inst->last_module->getOutputImagePara();
-        if ((input_para.height != inst_conf->output_image_para.height)
-            || (input_para.width != inst_conf->output_image_para.width)
+        if ((input_para.height != inst_conf->output_image_para.height) || (input_para.width != inst_conf->output_image_para.width)
             || (input_para.v4l2Fmt != inst_conf->output_image_para.v4l2Fmt)) {
             inst_conf->rga_enabled = true;
         }
@@ -487,8 +487,8 @@ SOURCE_CREATED:
     if (inst_conf->drmdisplay_enabled) {
         const ImagePara& input_para = inst->last_module->getOutputImagePara();
         shared_ptr<ModuleDrmDisplay> drm_display = make_shared<ModuleDrmDisplay>(input_para);
-        drm_display->setPlanePara(V4L2_PIX_FMT_NV12, inst_conf->drm_display_plane_id,
-                                  PLANE_TYPE_OVERLAY_OR_PRIMARY, inst_conf->drm_display_plane_zpos);
+        drm_display->setPlanePara(V4L2_PIX_FMT_NV12, inst_conf->drm_display_plane_id, PLANE_TYPE_OVERLAY_OR_PRIMARY,
+                                  inst_conf->drm_display_plane_zpos);
         // inst->drm_display->setPlaneSize(0, 0, 1280, 800);
         drm_display->setBufferCount(1);
         drm_display->setProductor(inst->last_module);
@@ -512,7 +512,6 @@ SOURCE_CREATED:
         } else {
             hc = vc = s;
         }
-
 
         ff_info("t_h t_v %d %d\n", t_h, t_v);
         ff_info("hc vc %d %d\n", hc, vc);
@@ -548,7 +547,7 @@ SOURCE_CREATED:
         shared_ptr<ModuleMppEnc> enc = make_shared<ModuleMppEnc>(inst_conf->encode_type);
         enc->setProductor(inst->last_module);
         enc->setBufferCount(8);
-        enc->setDuration(0);  // Use the input source timestamp
+        enc->setDuration(0); // Use the input source timestamp
         ret = enc->init();
         if (ret < 0) {
             ff_error("Enc init failed\n");
@@ -573,8 +572,7 @@ SOURCE_CREATED:
         char push_path[256] = "";
         sprintf(push_path, "/live/%d", inst_index);
         if (inst_conf->push_type) {
-            shared_ptr<ModuleRtmpServer> rtmp_s = make_shared<ModuleRtmpServer>(push_path,
-                                                                                inst_conf->push_port);
+            shared_ptr<ModuleRtmpServer> rtmp_s = make_shared<ModuleRtmpServer>(push_path, inst_conf->push_port);
             rtmp_s->setProductor(inst->last_module);
             rtmp_s->setBufferCount(0);
             rtmp_s->setSynchronize(inst->sync);
@@ -584,8 +582,7 @@ SOURCE_CREATED:
                 goto FAILED;
             }
         } else {
-            shared_ptr<ModuleRtspServer> rtsp_s = make_shared<ModuleRtspServer>(push_path,
-                                                                                inst_conf->push_port);
+            shared_ptr<ModuleRtspServer> rtsp_s = make_shared<ModuleRtspServer>(push_path, inst_conf->push_port);
             rtsp_s->setProductor(inst->last_module);
             rtsp_s->setBufferCount(0);
             rtsp_s->setSynchronize(inst->sync);
@@ -818,8 +815,9 @@ EXIT:
 
     for (int i = 0; i < instance_count; i++) {
         if (insts + i != NULL) {
-            if (insts[i].file_data != nullptr)
+            if (insts[i].file_data != nullptr) {
                 fclose(insts[i].file_data);
+            }
         }
     }
 

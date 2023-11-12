@@ -3,13 +3,12 @@
 
 #include <inttypes.h>
 #include <atomic>
-#include <mutex>
 #include <memory>
+#include <mutex>
 #include "ff_type.hpp"
 
 using namespace std;
-class MediaBuffer
-{
+class MediaBuffer {
 protected:
     uint16_t index;
     void* data;
@@ -37,35 +36,95 @@ public:
     static const bool STATUS_DIRTY = false;
 
 public:
-    uint16_t getIndex() const { return index; }
-    void setIndex(const uint16_t& index_) { index = index_; }
+    uint16_t getIndex() const
+    {
+        return index;
+    }
+    void setIndex(const uint16_t& index_)
+    {
+        index = index_;
+    }
 
-    void* getData() const { return data; }
-    void setData(void* data_) { data = data_; }
+    void* getData() const
+    {
+        return data;
+    }
+    void setData(void* data_)
+    {
+        data = data_;
+    }
 
-    size_t getSize() const { return size; }
-    void setSize(const size_t& size_) { size = size_; }
+    size_t getSize() const
+    {
+        return size;
+    }
+    void setSize(const size_t& size_)
+    {
+        size = size_;
+    }
 
-    void* getActiveData() const { return active_data; }
-    void setActiveData(void* activeData) { active_data = activeData; }
+    void* getActiveData() const
+    {
+        return active_data;
+    }
+    void setActiveData(void* activeData)
+    {
+        active_data = activeData;
+    }
 
-    size_t getActiveSize() const { return active_size; }
-    void setActiveSize(const size_t& activeSize) { active_size = activeSize; }
+    size_t getActiveSize() const
+    {
+        return active_size;
+    }
+    void setActiveSize(const size_t& activeSize)
+    {
+        active_size = activeSize;
+    }
 
-    int64_t getPUstimestamp() const { return p_ustimestamp; }
-    void setPUstimestamp(const int64_t& ustimestamp_) { p_ustimestamp = ustimestamp_; }
+    int64_t getPUstimestamp() const
+    {
+        return p_ustimestamp;
+    }
+    void setPUstimestamp(const int64_t& ustimestamp_)
+    {
+        p_ustimestamp = ustimestamp_;
+    }
 
-    int64_t getDUstimestamp() const { return d_ustimestamp; }
-    void setDUstimestamp(const int64_t& ustimestamp_) { d_ustimestamp = ustimestamp_; }
+    int64_t getDUstimestamp() const
+    {
+        return d_ustimestamp;
+    }
+    void setDUstimestamp(const int64_t& ustimestamp_)
+    {
+        d_ustimestamp = ustimestamp_;
+    }
 
-    void* getPrivateData() const { return private_data; }
-    void setPrivateData(void* privateData) { private_data = privateData; }
+    void* getPrivateData() const
+    {
+        return private_data;
+    }
+    void setPrivateData(void* privateData)
+    {
+        private_data = privateData;
+    }
 
-    shared_ptr<MediaBuffer> getExtraData() const { return extra_data; }
-    void setExtraData(shared_ptr<MediaBuffer> extraData) { extra_data = extraData; }
+    shared_ptr<MediaBuffer> getExtraData() const
+    {
+        return extra_data;
+    }
+    void setExtraData(shared_ptr<MediaBuffer> extraData)
+    {
+        extra_data = extraData;
+    }
 
-    bool getEos() const { return eos; }
-    void setEos(const bool& eos_) { eos = eos_; }
+    bool getEos() const
+    {
+        return eos;
+    }
+    void setEos(const bool& eos_)
+    {
+        eos = eos_;
+    }
 
     bool getStatus();
     void setStatus(bool _status);
@@ -74,8 +133,14 @@ public:
     uint16_t decreaseRefCount();
     uint16_t getRefCount();
     void setRefCount(uint16_t refCount);
-    MEDIA_BUFFER_TYPE getMediaBufferType() { return media_type; }
-    void setMediaBufferType(MEDIA_BUFFER_TYPE _media_type) { media_type = _media_type; }
+    MEDIA_BUFFER_TYPE getMediaBufferType()
+    {
+        return media_type;
+    }
+    void setMediaBufferType(MEDIA_BUFFER_TYPE _media_type)
+    {
+        media_type = _media_type;
+    }
 };
 
 #endif

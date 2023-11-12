@@ -2,22 +2,16 @@
 #define __VIDEO_BUFFER_HPP__
 
 #include <inttypes.h>
-#include "pixel_fmt.hpp"
 #include "media_buffer.hpp"
+#include "pixel_fmt.hpp"
 
 class DrmBuffer;
 typedef void* MppBuffer;
 typedef void* MppBufferGroup;
 
-class VideoBuffer : public MediaBuffer
-{
+class VideoBuffer : public MediaBuffer {
 public:
-    enum BUFFER_TYPE {
-        DRM_BUFFER_NONCACHEABLE,
-        DRM_BUFFER_CACHEABLE,
-        MALLOC_BUFFER,
-        EXTERNAL_BUFFER
-    };
+    enum BUFFER_TYPE { DRM_BUFFER_NONCACHEABLE, DRM_BUFFER_CACHEABLE, MALLOC_BUFFER, EXTERNAL_BUFFER };
 
 private:
     DrmBuffer* drm_buf;
@@ -41,20 +35,50 @@ public:
     int importToMppBufferGroupExtra(MppBufferGroup group, bool used);
 
 public:
-    MppBuffer getMppBuf() const { return mpp_buf; }
-    void setMppBuf(const MppBuffer& mppBuf) { mpp_buf = mppBuf; }
+    MppBuffer getMppBuf() const
+    {
+        return mpp_buf;
+    }
+    void setMppBuf(const MppBuffer& mppBuf)
+    {
+        mpp_buf = mppBuf;
+    }
 
-    DrmBuffer* getDrmBuf() const { return drm_buf; }
-    void setDrmBuf(DrmBuffer* drmBuf) { drm_buf = drmBuf; }
+    DrmBuffer* getDrmBuf() const
+    {
+        return drm_buf;
+    }
+    void setDrmBuf(DrmBuffer* drmBuf)
+    {
+        drm_buf = drmBuf;
+    }
 
-    int getBufFd() const { return buf_fd; }
-    void setBufFd(int bufFd) { buf_fd = bufFd; }
+    int getBufFd() const
+    {
+        return buf_fd;
+    }
+    void setBufFd(int bufFd)
+    {
+        buf_fd = bufFd;
+    }
 
-    ImagePara getImagePara() const { return image_para; }
-    void setImagePara(const ImagePara& para) { image_para = para; }
+    ImagePara getImagePara() const
+    {
+        return image_para;
+    }
+    void setImagePara(const ImagePara& para)
+    {
+        image_para = para;
+    }
 
-    BUFFER_TYPE getBufferType() const { return buffer_type; }
-    void setBufferType(const BUFFER_TYPE& bufferType) { buffer_type = bufferType; }
+    BUFFER_TYPE getBufferType() const
+    {
+        return buffer_type;
+    }
+    void setBufferType(const BUFFER_TYPE& bufferType)
+    {
+        buffer_type = bufferType;
+    }
 
     void flushDrmBuf();
     void invalidateDrmBuf();

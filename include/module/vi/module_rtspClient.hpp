@@ -4,8 +4,7 @@
 #include "module/module_media.hpp"
 class RTSPClient;
 
-class ModuleRtspClient : public ModuleMedia
-{
+class ModuleRtspClient : public ModuleMedia {
 public:
     enum SESSION_STATUS {
         SESSION_STATUS_CLOSED,
@@ -15,8 +14,8 @@ public:
     };
 
 public:
-    ModuleRtspClient(string rtsp_url, RTSP_STREAM_TYPE _stream_type = RTSP_STREAM_TYPE_UDP,
-                     bool enable_video = true, bool enable_audio = false);
+    ModuleRtspClient(string rtsp_url, RTSP_STREAM_TYPE _stream_type = RTSP_STREAM_TYPE_UDP, bool enable_video = true,
+                     bool enable_audio = false);
     ~ModuleRtspClient();
     int changeSource(string rtsp_url, RTSP_STREAM_TYPE _stream_type = RTSP_STREAM_TYPE_UDP);
     int init() override;
@@ -27,8 +26,14 @@ public:
     int audioChannel();
     int audioSampleRate();
     uint32_t videoFPS();
-    void setTimeOutSec(unsigned sec, unsigned nsec) { time_msec = sec * 1000 + nsec / 1000; }
-    void setMaxTimeOutCount(int count) { maxTimeOutCount = count; }
+    void setTimeOutSec(unsigned sec, unsigned nsec)
+    {
+        time_msec = sec * 1000 + nsec / 1000;
+    }
+    void setMaxTimeOutCount(int count)
+    {
+        maxTimeOutCount = count;
+    }
     SESSION_STATUS getSessionStatus();
 
 protected:
@@ -47,7 +52,8 @@ private:
     int abnormalStatusFlag;
     int timeOutCount;
     int maxTimeOutCount;
-    bool first_video_frame, first_audio_frame;
+    bool first_video_frame;
+    bool first_audio_frame;
 
     bool open();
 };
